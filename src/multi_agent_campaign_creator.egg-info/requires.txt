@@ -1,0 +1,13 @@
+crewai[tools]>=0.86.0
+langchain-openai>=0.3.0
+langchain-community>=0.3.0
+pydantic>=2.10.0
+python-dotenv>=1.1.0
+httpx>=0.28.0
+rich>=14.0.0
+Jinja2>=3.1.6
+
+[dev]
+pytest>=8.4.0
+pytest-asyncio>=1.0.0
+pytest-cov>=6.0
