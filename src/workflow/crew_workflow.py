@@ -109,7 +109,10 @@ class CampaignCrew:
     def _build_brief(self, raw_output: str) -> CampaignBrief:
         """Wrap raw crew output into a typed CampaignBrief."""
         return CampaignBrief(
+            client_name=self.request.product_name,
             campaign_name=f"{self.request.product_name} Campaign",
+            objective=self.request.campaign_goals,
+            target_audience=self.request.target_audience,
             request=self.request,
             research=MarketResearch(
                 market_summary="See full Markdown brief for detailed research."

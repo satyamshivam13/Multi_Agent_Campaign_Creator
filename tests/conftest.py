@@ -2,7 +2,7 @@
 
 import pytest
 from src.agents import ResearchAgent, CopywriterAgent, ArtDirectorAgent, ManagerAgent
-from src.models import CampaignBrief, CampaignRequest
+from src.models import CampaignBrief, CampaignRequest, CampaignChannel, CopyTone
 
 
 @pytest.fixture
@@ -45,6 +45,7 @@ def sample_campaign_brief():
 def sample_request() -> CampaignRequest:
     return CampaignRequest(
         product_name="AeroFlow Pro",
+        product_description="An AI-powered air purifier for smart homes",
         target_audience=(
             "Health-conscious millennials and Gen-Z professionals (25-38) "
             "living in urban apartments"
@@ -52,6 +53,12 @@ def sample_request() -> CampaignRequest:
         campaign_goals=(
             "Drive 10,000 pre-orders in 60 days, build brand awareness"
         ),
-        channels=["social_media", "email", "display_ads", "influencer"],
-        tone="professional",
+        channels=[
+            CampaignChannel.SOCIAL_MEDIA,
+            CampaignChannel.EMAIL,
+            CampaignChannel.DISPLAY_ADS,
+            CampaignChannel.INFLUENCER,
+        ],
+        brand_voice=CopyTone.PROFESSIONAL,
     )
+

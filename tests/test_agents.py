@@ -11,6 +11,7 @@ class TestResearchAgent:
         """Test that research agent initializes correctly"""
         assert research_agent.name == "Market Research Expert"
         assert research_agent.role == "Market Researcher"
+        assert len(research_agent.backstory) > 0
     
     def test_research_agent_execute(self, research_agent):
         """Test research agent execution"""
@@ -25,6 +26,7 @@ class TestCopywriterAgent:
         """Test that copywriter agent initializes correctly"""
         assert copywriter_agent.name == "Creative Copywriter"
         assert copywriter_agent.role == "Copywriter"
+        assert len(copywriter_agent.backstory) > 0
     
     def test_copywriter_agent_execute(self, copywriter_agent):
         """Test copywriter agent execution"""
@@ -39,6 +41,12 @@ class TestArtDirectorAgent:
         """Test that art director agent initializes correctly"""
         assert art_director_agent.name == "Senior Art Director"
         assert art_director_agent.role == "Art Director"
+        assert len(art_director_agent.backstory) > 0
+    
+    def test_art_director_agent_execute(self, art_director_agent):
+        """Test art director agent execution"""
+        result = art_director_agent.execute("test task")
+        assert "Visual direction created" in result
 
 
 class TestManagerAgent:
@@ -48,3 +56,10 @@ class TestManagerAgent:
         """Test that manager agent initializes correctly"""
         assert manager_agent.name == "Campaign Manager"
         assert manager_agent.role == "Campaign Manager"
+        assert len(manager_agent.backstory) > 0
+    
+    def test_manager_agent_execute(self, manager_agent):
+        """Test manager agent execution"""
+        result = manager_agent.execute("test task")
+        assert "Campaign managed" in result
+
