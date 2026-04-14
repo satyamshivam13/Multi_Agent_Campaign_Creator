@@ -72,34 +72,34 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RELY-01 | Phase TBD | Pending |
-| RELY-02 | Phase TBD | Pending |
-| RELY-03 | Phase TBD | Pending |
-| RELY-04 | Phase TBD | Pending |
-| ORCH-01 | Phase TBD | Pending |
-| ORCH-02 | Phase TBD | Pending |
-| ORCH-03 | Phase TBD | Pending |
-| ORCH-04 | Phase TBD | Pending |
-| QUAL-01 | Phase TBD | Pending |
-| QUAL-02 | Phase TBD | Pending |
-| QUAL-03 | Phase TBD | Pending |
-| QUAL-04 | Phase TBD | Pending |
-| QUAL-05 | Phase TBD | Pending |
-| DATA-01 | Phase TBD | Pending |
-| DATA-02 | Phase TBD | Pending |
-| DATA-03 | Phase TBD | Pending |
-| CLI-01 | Phase TBD | Pending |
-| CLI-02 | Phase TBD | Pending |
-| CLI-03 | Phase TBD | Pending |
-| TEST-01 | Phase TBD | Pending |
-| TEST-02 | Phase TBD | Pending |
-| TEST-03 | Phase TBD | Pending |
+| RELY-01 | Phase 1 | Pending |
+| RELY-02 | Phase 1 | Pending |
+| RELY-03 | Phase 1 | Pending |
+| RELY-04 | Phase 1 | Pending |
+| ORCH-01 | Phase 2 | Pending |
+| ORCH-02 | Phase 2 | Pending |
+| ORCH-03 | Phase 2 | Pending |
+| ORCH-04 | Phase 2 | Pending |
+| QUAL-01 | Phase 3 | Pending |
+| QUAL-02 | Phase 3 | Pending |
+| QUAL-03 | Phase 3 | Pending |
+| QUAL-04 | Phase 3 | Pending |
+| QUAL-05 | Phase 3 | Pending |
+| DATA-01 | Phase 1 | Pending |
+| DATA-02 | Phase 2 | Pending |
+| DATA-03 | Phase 1 | Pending |
+| CLI-01 | Phase 4 | Pending |
+| CLI-02 | Phase 4 | Pending |
+| CLI-03 | Phase 4 | Pending |
+| TEST-01 | Phase 4 | Pending |
+| TEST-02 | Phase 4 | Pending |
+| TEST-03 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 22 total
-- Mapped to phases: 0
-- Unmapped: 22 ⚠️
+- Mapped to phases: 22 ✓
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-14*
-*Last updated: 2026-04-14 after initial definition*
+*Last updated: 2026-04-14 after roadmap creation*
