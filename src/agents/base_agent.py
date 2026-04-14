@@ -32,4 +32,5 @@ def get_llm(
         model=f"groq/{model_name}",
         temperature=temperature if temperature is not None else settings.temperature,
         api_key=settings.groq_api_key,
+        max_tokens=settings.groq_max_tokens,
     )

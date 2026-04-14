@@ -8,6 +8,8 @@ CampaignCrew — orchestrates agents + tasks via CrewAI.
 from __future__ import annotations
 
 from datetime import datetime
+import re
+import time
 
 from crewai import Crew, Process
 from rich.console import Console
@@ -30,6 +32,13 @@ from src.models.campaign_models import (
 from src.tasks.campaign_tasks import CampaignTaskFactory
 
 console = Console()
+
+RATE_LIMIT_ERROR_MARKERS = (
+    "rate limit",
+    "rate_limit_exceeded",
+    "429",
+    "too many requests",
+)
 
 
 class CampaignCrew:
@@ -88,8 +97,27 @@ class CampaignCrew:
             "\n[bold cyan]═══ AGENT WORKFLOW STARTING ═══[/bold cyan]\n"
         )
 
-        # Kick off CrewAI execution
-        result = self.crew.kickoff()
+        # Kick off CrewAI execution with retry on provider TPM rate limits.
+        retry_attempt = 0
+        while True:
+            try:
+                result = self.crew.kickoff()
+                break
+            except Exception as exc:
+                if not self._is_rate_limit_error(exc):
+                    raise
+
+                if retry_attempt >= settings.groq_rate_limit_retries:
+                    raise
+
+                wait_seconds = self._compute_retry_delay(exc, retry_attempt)
+                console.print(
+                    "[yellow]Rate limit hit. "
+                    f"Retrying in {wait_seconds:.2f}s "
+                    f"({retry_attempt + 1}/{settings.groq_rate_limit_retries})...[/yellow]"
+                )
+                time.sleep(wait_seconds)
+                retry_attempt += 1
 
         # Get the raw output string
         raw_output = str(result)
@@ -106,6 +134,33 @@ class CampaignCrew:
 
         return brief
 
+    @staticmethod
+    def _is_rate_limit_error(exc: Exception) -> bool:
+        """Detect provider throttling errors from common status/message patterns."""
+        message = str(exc).lower()
+        return any(marker in message for marker in RATE_LIMIT_ERROR_MARKERS)
+
+    @staticmethod
+    def _extract_retry_after_seconds(message: str) -> float | None:
+        """Parse Groq's suggested wait time from error text when available."""
+        match = re.search(r"try again in\s+([0-9]+(?:\.[0-9]+)?)s", message, re.IGNORECASE)
+        if not match:
+            return None
+        return float(match.group(1))
+
+    @staticmethod
+    def _exponential_backoff(attempt: int) -> float:
+        """Compute fallback retry wait with a bounded exponential schedule."""
+        delay = settings.groq_retry_base_seconds * (2 ** attempt)
+        return min(delay, settings.groq_retry_max_seconds)
+
+    def _compute_retry_delay(self, exc: Exception, attempt: int) -> float:
+        """Use provider hint when present, else fallback to exponential backoff."""
+        provider_wait = self._extract_retry_after_seconds(str(exc))
+        if provider_wait is not None:
+            return min(provider_wait, settings.groq_retry_max_seconds)
+        return self._exponential_backoff(attempt)
+
     def _build_brief(self, raw_output: str) -> CampaignBrief:
         """Wrap raw crew output into a typed CampaignBrief."""
         return CampaignBrief(
@@ -113,6 +168,9 @@ class CampaignCrew:
             campaign_name=f"{self.request.product_name} Campaign",
             objective=self.request.campaign_goals,
             target_audience=self.request.target_audience,
+            budget=None,
+            timeline=None,
+            constraints=None,
             request=self.request,
             research=MarketResearch(
                 market_summary="See full Markdown brief for detailed research."

@@ -28,7 +28,21 @@ class Settings:
 		)
 	)
 	temperature: float = field(
-		default_factory=lambda: float(os.getenv("GROQ_TEMPERATURE", "0.7"))
+		default_factory=lambda: float(
+			os.getenv("GROQ_TEMPERATURE", os.getenv("TEMPERATURE", "0.7"))
+		)
+	)
+	groq_max_tokens: int = field(
+		default_factory=lambda: int(os.getenv("GROQ_MAX_TOKENS", "1400"))
+	)
+	groq_rate_limit_retries: int = field(
+		default_factory=lambda: int(os.getenv("GROQ_RATE_LIMIT_RETRIES", "3"))
+	)
+	groq_retry_base_seconds: float = field(
+		default_factory=lambda: float(os.getenv("GROQ_RETRY_BASE_SECONDS", "8"))
+	)
+	groq_retry_max_seconds: float = field(
+		default_factory=lambda: float(os.getenv("GROQ_RETRY_MAX_SECONDS", "45"))
 	)
 	serper_api_key: str = field(
 		default_factory=lambda: os.getenv("SERPER_API_KEY", "")
@@ -41,6 +55,20 @@ class Settings:
 		if not self.groq_api_key:
 			raise EnvironmentError(
 				"GROQ_API_KEY is required. Set it in your .env file."
+			)
+		if self.groq_max_tokens <= 0:
+			raise EnvironmentError("GROQ_MAX_TOKENS must be greater than 0.")
+		if self.groq_rate_limit_retries < 0:
+			raise EnvironmentError(
+				"GROQ_RATE_LIMIT_RETRIES cannot be negative."
+			)
+		if self.groq_retry_base_seconds <= 0:
+			raise EnvironmentError(
+				"GROQ_RETRY_BASE_SECONDS must be greater than 0."
+			)
+		if self.groq_retry_max_seconds <= 0:
+			raise EnvironmentError(
+				"GROQ_RETRY_MAX_SECONDS must be greater than 0."
 			)
 		# Ensure output directory exists
 		self.output_dir.mkdir(parents=True, exist_ok=True)

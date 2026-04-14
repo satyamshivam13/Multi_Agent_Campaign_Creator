@@ -52,7 +52,13 @@ Edit `.env` and add your API keys:
 ```ini
 GROQ_API_KEY=gsk_your_groq_api_key_here
 GROQ_MODEL=llama-3.3-70b-versatile
-TEMPERATURE=0.7
+GROQ_TEMPERATURE=0.7
+GROQ_MAX_TOKENS=1400
+
+# Optional: auto-retry on Groq TPM rate limits
+GROQ_RATE_LIMIT_RETRIES=3
+GROQ_RETRY_BASE_SECONDS=8
+GROQ_RETRY_MAX_SECONDS=45
 
 # Optional: for live market research
 SERPER_API_KEY=your_serper_api_key_here
@@ -157,7 +163,11 @@ Each agent:
 |----------|----------|-------------|
 | `GROQ_API_KEY` | ✅ Yes | Your Groq API key from console.groq.com |
 | `GROQ_MODEL` | ⚠️ Optional | LLM model name (default: `llama-3.3-70b-versatile`) |
-| `TEMPERATURE` | ⚠️ Optional | LLM temperature: 0-1 (default: 0.7, higher = more creative) |
+| `GROQ_TEMPERATURE` | ⚠️ Optional | LLM temperature: 0-1 (default: 0.7, higher = more creative) |
+| `GROQ_MAX_TOKENS` | ⚠️ Optional | Token cap per LLM call (default: `1400`) |
+| `GROQ_RATE_LIMIT_RETRIES` | ⚠️ Optional | Retry count for Groq `429` / `rate_limit_exceeded` errors (default: `3`) |
+| `GROQ_RETRY_BASE_SECONDS` | ⚠️ Optional | Base seconds for exponential fallback backoff (default: `8`) |
+| `GROQ_RETRY_MAX_SECONDS` | ⚠️ Optional | Maximum wait per retry attempt (default: `45`) |
 | `SERPER_API_KEY` | ❌ No | For live Google Trends; tools use deterministic simulation if not set |
 | `OUTPUT_DIR` | ❌ No | Directory for campaign outputs (default: `src/output`) |
 
@@ -227,9 +237,10 @@ pytest tests/ --cov=src --cov-report=html
 Groq free tier: **12,000 tokens per minute (TPM)**
 
 **Solution:**
-- Wait 3-5 seconds and retry
+- Wait and retry (the app now auto-retries up to `GROQ_RATE_LIMIT_RETRIES` times)
 - Upgrade to [Groq Dev Tier](https://console.groq.com/settings/billing) for higher limits
 - Use a different model (try `gemma2-9b-it` for faster/smaller outputs)
+- Lower `GROQ_MAX_TOKENS` (e.g., `900`) to reduce TPM pressure
 
 ### Missing API Key
 
