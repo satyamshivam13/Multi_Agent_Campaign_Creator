@@ -7,7 +7,7 @@ Thank you for your interest in contributing! This document provides guidelines a
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/multi-agent-campaign-creator.git
+   git clone https://github.com/satyamshivam13/multi-agent-campaign-creator.git
    cd multi-agent-campaign-creator
    ```
 
