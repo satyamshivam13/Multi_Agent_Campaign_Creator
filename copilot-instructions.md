@@ -91,8 +91,8 @@ A Python CLI that generates end-to-end marketing campaigns using a sequential Cr
 ## Comments
 - Use brief section comments for high-level phases (examples: "Build agents", "Save to disk" in `src/workflow/crew_workflow.py`).
 - Keep comments focused on behavior intent, not obvious syntax.
-- Not applicable.
-- Python docstrings are used at module, class, and method level throughout `src/`.
+- Keep comments focused on behavior intent, not obvious syntax.
+- Python docstrings are used at module, class, and method level throughout `src/`.- Python docstrings are used at module, class, and method level throughout `src/`.
 ## Function Design
 - Keep orchestration methods moderate and split logic into helpers (`run` delegates to `_compute_retry_delay`, `_build_brief`, `_save_outputs` in `src/workflow/crew_workflow.py`).
 - Prefer explicit typed parameters with defaults for optional behavior (examples: `_run(..., channel: str = "general")` in `src/tools/copy_evaluation_tool.py`).
@@ -165,8 +165,8 @@ A Python CLI that generates end-to-end marketing campaigns using a sequential Cr
 - Config validation in `Settings.__post_init__` (`src/config.py`) raises `EnvironmentError` for missing/invalid values.
 - Runtime retry in `CampaignCrew.run` (`src/workflow/crew_workflow.py`) catches provider throttling signatures and sleeps with bounded backoff.
 ## Cross-Cutting Concerns
+> TODO: Document cross-cutting concerns such as observability, security patterns, and performance considerations.
 <!-- GSD:architecture-end -->
-
 <!-- GSD:skills-start source:skills/ -->
 ## Project Skills
 
