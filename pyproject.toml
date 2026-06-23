@@ -15,6 +15,7 @@ authors = [
 
 dependencies = [
     "crewai>=0.86.0",
+    "litellm>=1.74.0",
     "langgraph>=0.2.0",
     "langchain-groq>=0.1.0",
     "langchain-community>=0.1.0",
