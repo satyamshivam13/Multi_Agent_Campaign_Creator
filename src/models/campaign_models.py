@@ -179,7 +179,17 @@ class RunID(BaseModel):
     def __hash__(self) -> int:
         """Hash allows RunID to be used as dict key"""
         return hash(self.value)
-    
+
+    def __eq__(self, other: object) -> bool:
+        """RunIDs are equal when their identifier value matches.
+
+        Consistent with __hash__ (which also keys on value), so a rehydrated
+        RunID compares equal to the original regardless of created_at.
+        """
+        if not isinstance(other, RunID):
+            return NotImplemented
+        return self.value == other.value
+
     def __str__(self) -> str:
         """String representation returns the value"""
         return self.value

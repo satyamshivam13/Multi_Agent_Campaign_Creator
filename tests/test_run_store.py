@@ -5,7 +5,7 @@ import tempfile
 import hashlib
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -248,9 +248,9 @@ class TestCampaignCrewIntegration:
         return store
     
     def test_crew_generates_run_id(self, mock_store):
-        """CampaignCrew generates run_id on initialization."""
+        """CampaignCrew generates a valid RunID on initialization."""
         from src.workflow.crew_workflow import CampaignCrew
-        
+
         request = CampaignRequest(
             product_name="Test",
             product_description="Test",
@@ -259,16 +259,12 @@ class TestCampaignCrewIntegration:
             channels=[CampaignChannel.SOCIAL_MEDIA],
             brand_voice=CopyTone.PROFESSIONAL,
         )
-        
-        # Patch crew.kickoff to avoid actual LLM call
-        with patch.object(CampaignCrew, '__init__', lambda self, req, store=None: None):
-            crew = CampaignCrew.__new__(CampaignCrew)
-            crew.request = request
-            crew.store = mock_store
-            crew.run_id = RunID.generate()
-        
-        # Actually just verify the attribute would exist
-        assert hasattr(crew, 'run_id') or True  # Would pass with full mock
+
+        # Real construction (no LLM call until .run()); store is mocked.
+        crew = CampaignCrew(request, store=mock_store)
+
+        assert isinstance(crew.run_id, RunID)
+        assert crew.run_id.value  # format-validated by the RunID model
     
     def test_crew_accepts_store_parameter(self, mock_store):
         """CampaignCrew accepts optional store parameter."""
@@ -287,5 +283,47 @@ class TestCampaignCrewIntegration:
         import inspect
         sig = inspect.signature(CampaignCrew.__init__)
         params = list(sig.parameters.keys())
-        
-        assert 'store' in params or 'request' in params  # Signature check
+
+        assert 'store' in params  # Signature must expose the store parameter
+
+    def test_crew_records_parent_run_id(self, mock_store):
+        """CampaignCrew stores the parent_run_id for rerun linkage (D-08)."""
+        from src.workflow.crew_workflow import CampaignCrew
+
+        request = CampaignRequest(
+            product_name="Test",
+            product_description="Test",
+            target_audience="Test",
+            campaign_goals="Test",
+            channels=[CampaignChannel.SOCIAL_MEDIA],
+            brand_voice=CopyTone.PROFESSIONAL,
+        )
+        parent = RunID.generate()
+
+        crew = CampaignCrew(request, store=mock_store, parent_run_id=parent)
+
+        assert crew.parent_run_id == parent
+        # And it defaults to None when omitted (top-level run).
+        assert CampaignCrew(request, store=mock_store).parent_run_id is None
+
+
+class TestRunIDEquality:
+    """RunID hash/equality contract."""
+
+    def test_equal_when_value_matches_regardless_of_created_at(self):
+        from datetime import datetime
+
+        a = RunID(value="20260415T093045-a7x2m",
+                  created_at=datetime(2026, 4, 15, 9, 30, 45))
+        b = RunID(value="20260415T093045-a7x2m",
+                  created_at=datetime(2026, 4, 15, 9, 30, 46))
+
+        assert a == b                       # equality keys on value only
+        assert hash(a) == hash(b)           # consistent with __hash__
+        assert {a, b} == {a}                # usable as set/dict keys
+
+    def test_not_equal_when_value_differs(self):
+        a = RunID.generate()
+        b = RunID.generate()
+        assert a != b
+        assert a != "not-a-runid"
