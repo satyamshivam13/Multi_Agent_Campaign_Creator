@@ -7,9 +7,11 @@ CampaignCrew — orchestrates agents + tasks via CrewAI.
 
 from __future__ import annotations
 
-from datetime import datetime
+import hashlib
 import re
 import time
+from datetime import datetime
+from typing import Optional
 
 from crewai import Crew, Process
 from rich.console import Console
@@ -27,8 +29,10 @@ from src.models.campaign_models import (
     CampaignRequest,
     CopyPackage,
     MarketResearch,
+    RunID,
     VisualDirection,
 )
+from src.runtime.run_store import RunStore
 from src.tasks.campaign_tasks import CampaignTaskFactory
 
 console = Console()
@@ -44,8 +48,14 @@ RATE_LIMIT_ERROR_MARKERS = (
 class CampaignCrew:
     """High-level facade around a CrewAI crew."""
 
-    def __init__(self, request: CampaignRequest) -> None:
+    def __init__(
+        self,
+        request: CampaignRequest,
+        store: Optional[RunStore] = None,
+    ) -> None:
         self.request = request
+        self.store = store or RunStore()  # Default to output_dir/runs.db
+        self.run_id = RunID.generate()  # Immutable run ID for entire execution
         self._factory = CampaignTaskFactory(request)
 
         # Build agents
@@ -97,6 +107,16 @@ class CampaignCrew:
             "\n[bold cyan]═══ AGENT WORKFLOW STARTING ═══[/bold cyan]\n"
         )
 
+        # Create run record in SQLite at start (D-03: source of truth)
+        try:
+            self.store.create_run(
+                run_id=self.run_id,
+                request=self.request,
+            )
+            console.print(f"[dim]Run ID: {self.run_id}[/dim]")
+        except Exception as e:
+            console.print(f"[yellow]Warning: Failed to create run record: {e}[/yellow]")
+
         # Kick off CrewAI execution with retry on provider TPM rate limits.
         retry_attempt = 0
         while True:
@@ -104,17 +124,47 @@ class CampaignCrew:
                 result = self.crew.kickoff()
                 break
             except Exception as exc:
+                # Update status on non-retryable errors
                 if not self._is_rate_limit_error(exc):
+                    try:
+                        self.store.update_run_status(
+                            run_id=self.run_id,
+                            status="failed",
+                            end_time=datetime.utcnow(),
+                            terminal_failure_reason=str(exc)[:500],
+                        )
+                    except Exception:
+                        pass  # Best effort
                     raise
 
                 if retry_attempt >= settings.groq_rate_limit_retries:
+                    try:
+                        self.store.update_run_status(
+                            run_id=self.run_id,
+                            status="failed",
+                            end_time=datetime.utcnow(),
+                            terminal_failure_reason="Rate limit retries exhausted",
+                        )
+                    except Exception:
+                        pass
                     raise
 
                 wait_seconds = self._compute_retry_delay(exc, retry_attempt)
+                
+                # Record retry attempt in SQLite (D-06)
+                try:
+                    self.store.update_run_status(
+                        run_id=self.run_id,
+                        status="running",
+                        retry_count=retry_attempt + 1,
+                    )
+                except Exception:
+                    pass  # Best effort
+                
                 console.print(
-                    "[yellow]Rate limit hit. "
-                    f"Retrying in {wait_seconds:.2f}s "
-                    f"({retry_attempt + 1}/{settings.groq_rate_limit_retries})...[/yellow]"
+                    f"[yellow]Rate limit hit. Retrying in {wait_seconds:.2f}s "
+                    f"({retry_attempt + 1}/{settings.groq_rate_limit_retries})... "
+                    f"(Run: {self.run_id})[/yellow]"
                 )
                 time.sleep(wait_seconds)
                 retry_attempt += 1
@@ -129,8 +179,19 @@ class CampaignCrew:
         # Build structured brief
         brief = self._build_brief(raw_output)
 
-        # Save to disk
+        # Save to disk (also registers artifacts)
         self._save_outputs(brief, raw_output)
+
+        # Update success status in SQLite (D-03)
+        try:
+            self.store.update_run_status(
+                run_id=self.run_id,
+                status="success",
+                end_time=datetime.utcnow(),
+                retry_count=retry_attempt,
+            )
+        except Exception:
+            pass  # Best effort
 
         return brief
 
@@ -188,9 +249,9 @@ class CampaignCrew:
 
     def _save_outputs(self, brief: CampaignBrief, raw_output: str) -> None:
         """Save the campaign brief as Markdown and JSON."""
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Use run_id in filename for traceability
         slug = self.request.product_name.lower().replace(" ", "_")[:30]
-        base = settings.output_dir / f"{slug}_{ts}"
+        base = settings.output_dir / f"{slug}_{self.run_id}"
 
         # Save Markdown
         md_path = base.with_suffix(".md")
@@ -204,6 +265,23 @@ class CampaignCrew:
             brief.model_dump_json(indent=2), encoding="utf-8"
         )
         console.print(f"[green]✓ Saved JSON:[/green]     {json_path}")
+
+        # Register artifacts with RunStore (D-04: Link artifacts to run)
+        try:
+            md_hash = hashlib.sha256(md_content.encode()).hexdigest()
+            json_hash = hashlib.sha256(json_path.read_bytes()).hexdigest()
+            self.store.record_artifact(
+                self.run_id,
+                str(md_path.relative_to(settings.output_dir)),
+                md_hash
+            )
+            self.store.record_artifact(
+                self.run_id,
+                str(json_path.relative_to(settings.output_dir)),
+                json_hash
+            )
+        except Exception as e:
+            console.print(f"[yellow]Warning: Failed to record artifacts: {e}[/yellow]")
 
     def _format_markdown(
         self, brief: CampaignBrief, raw_output: str

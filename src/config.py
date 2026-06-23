@@ -50,6 +50,9 @@ class Settings:
 	output_dir: Path = field(
 		default_factory=lambda: Path(os.getenv("OUTPUT_DIR", "src/output"))
 	)
+	debug_mode: bool = field(
+		default_factory=lambda: os.getenv("DEBUG_MODE", "false").lower() in ("true", "1")
+	)
 
 	def __post_init__(self) -> None:
 		if not self.groq_api_key:

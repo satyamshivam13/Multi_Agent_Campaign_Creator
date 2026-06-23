@@ -13,6 +13,11 @@ jobs:
       matrix:
         python-version: ["3.11", "3.12"]
 
+    # Tests mock all LLM calls, so they only need a key present to clear
+    # config.py's import-time validation — never a real one.
+    env:
+      GROQ_API_KEY: "ci-dummy-key-not-used-tests-mock-llm"
+
     steps:
     - uses: actions/checkout@v4
 

@@ -7,10 +7,10 @@
 
 ### Reliability
 
-- [ ] **RELY-01**: System retries transient provider failures with bounded backoff and stops on non-transient errors.
-- [ ] **RELY-02**: Every campaign run is assigned a unique `run_id` and includes start/end timestamps.
-- [ ] **RELY-03**: System records retry attempts and terminal failure reason per stage.
-- [ ] **RELY-04**: User can rerun a failed campaign using the same request/config snapshot.
+- [x] **RELY-01**: System retries transient provider failures with bounded backoff and stops on non-transient errors.
+- [x] **RELY-02**: Every campaign run is assigned a unique `run_id` and includes start/end timestamps.
+- [x] **RELY-03**: System records retry attempts and terminal failure reason per stage.
+- [x] **RELY-04**: User can rerun a failed campaign using the same request/config snapshot.
 
 ### Orchestration
 
@@ -29,13 +29,13 @@
 
 ### Persistence and Auditability
 
-- [ ] **DATA-01**: System stores a run manifest linking request input, config snapshot, and produced artifacts.
+- [x] **DATA-01**: System stores a run manifest linking request input, config snapshot, and produced artifacts.
 - [ ] **DATA-02**: Markdown and JSON outputs are written atomically to prevent partial-file corruption.
-- [ ] **DATA-03**: Saved output metadata includes provider/model details used for generation.
+- [x] **DATA-03**: Saved output metadata includes provider/model details used for generation.
 
 ### CLI and Developer Experience
 
-- [ ] **CLI-01**: CLI normal mode shows user-safe errors while debug mode can show full tracebacks.
+- [x] **CLI-01**: CLI normal mode shows user-safe errors while debug mode can show full tracebacks.
 - [ ] **CLI-02**: CLI exposes profile controls (`fast`, `balanced`, `strict`) for token and retry behavior.
 - [ ] **CLI-03**: Configuration validation fails early with actionable messages for invalid environment values.
 
@@ -72,10 +72,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RELY-01 | Phase 1 | Pending |
-| RELY-02 | Phase 1 | Pending |
-| RELY-03 | Phase 1 | Pending |
-| RELY-04 | Phase 1 | Pending |
+| RELY-01 | Phase 1 | Complete |
+| RELY-02 | Phase 1 | Complete |
+| RELY-03 | Phase 1 | Complete |
+| RELY-04 | Phase 1 | Complete |
 | ORCH-01 | Phase 2 | Pending |
 | ORCH-02 | Phase 2 | Pending |
 | ORCH-03 | Phase 2 | Pending |
@@ -85,10 +85,10 @@
 | QUAL-03 | Phase 3 | Pending |
 | QUAL-04 | Phase 3 | Pending |
 | QUAL-05 | Phase 3 | Pending |
-| DATA-01 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 2 | Pending |
-| DATA-03 | Phase 1 | Pending |
-| CLI-01 | Phase 4 | Pending |
+| DATA-03 | Phase 1 | Complete |
+| CLI-01 | Phase 4 | Complete |
 | CLI-02 | Phase 4 | Pending |
 | CLI-03 | Phase 4 | Pending |
 | TEST-01 | Phase 4 | Pending |

@@ -8,6 +8,8 @@ from src.models.campaign_models import (
 	VisualDirection,
 	CampaignChannel,
 	CopyTone,
+	RunID,
+	RunMetadata,
 )
 
 __all__ = [
@@ -18,4 +20,6 @@ __all__ = [
 	"VisualDirection",
 	"CampaignChannel",
 	"CopyTone",
+	"RunID",
+	"RunMetadata",
 ]
