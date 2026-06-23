@@ -52,10 +52,12 @@ class CampaignCrew:
         self,
         request: CampaignRequest,
         store: Optional[RunStore] = None,
+        parent_run_id: Optional[RunID] = None,
     ) -> None:
         self.request = request
         self.store = store or RunStore()  # Default to output_dir/runs.db
         self.run_id = RunID.generate()  # Immutable run ID for entire execution
+        self.parent_run_id = parent_run_id  # Links rerun children to parent (D-08)
         self._factory = CampaignTaskFactory(request)
 
         # Build agents
@@ -112,6 +114,7 @@ class CampaignCrew:
             self.store.create_run(
                 run_id=self.run_id,
                 request=self.request,
+                parent_run_id=self.parent_run_id,
             )
             console.print(f"[dim]Run ID: {self.run_id}[/dim]")
         except Exception as e:

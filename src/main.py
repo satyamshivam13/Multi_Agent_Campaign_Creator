@@ -87,8 +87,8 @@ def _handle_rerun(run_id_str: str, debug: bool = False) -> None:
     console.print(f"[dim]Replaying campaign from run {run_id}[/dim]")
     console.print(f"[dim]Product: {request.product_name}[/dim]")
     
-    # Create new child run with parent linkage
-    crew = CampaignCrew(request, store=store)
+    # Create new child run with parent linkage (D-08)
+    crew = CampaignCrew(request, store=store, parent_run_id=run_id)
     
     console.print(f"[dim]New child run ID: {crew.run_id}[/dim]")
     
