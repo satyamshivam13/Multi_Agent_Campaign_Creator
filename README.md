@@ -153,6 +153,37 @@ Each agent:
 - **Input**: `CampaignRequest` — product name, audience, goals, channels, brand voice
 - **Output**: `CampaignBrief` — Full campaign with research, copy, visuals, strategy, and KPIs
 
+### LangGraph Orchestration (alternative runner)
+
+The same four agents can be driven by a [LangGraph](https://langchain-ai.github.io/langgraph/)
+state machine instead of CrewAI's internal sequencer. This separates control
+flow from execution the way production agentic systems do:
+
+- **LangGraph** owns the *control flow* — which agent runs next, how state is
+  threaded between stages, and where the pipeline halts on failure.
+- **CrewAI** owns the *execution* — each graph node runs one CrewAI `Agent`
+  inside a single-task `Crew`.
+
+```
+[Research] → [Copywriter] → [Art Director] → [Manager] → [END]
+     │             │               │
+   (error)      (error)         (error)  ──────────────→ [END]
+```
+
+Each stage records its output (or an error) into a shared `CampaignState`. A
+conditional edge (`should_continue`) advances to the next agent on success or
+routes straight to `END` if any stage failed, so a provider outage halts the
+run cleanly instead of cascading.
+
+Run it with the `--langgraph` flag:
+
+```bash
+python -m src.main --demo --langgraph
+```
+
+Implementation: [`src/workflow/langgraph_workflow.py`](src/workflow/langgraph_workflow.py).
+The default CrewAI-sequenced runner remains the standard path.
+
 ---
 
 ## 🔧 Configuration
