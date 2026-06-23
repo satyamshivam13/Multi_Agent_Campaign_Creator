@@ -134,16 +134,16 @@ class RunStore:
         run_id: RunID,
         status: str,
         end_time: Optional[datetime] = None,
-        failure_reason: Optional[str] = None,
+        terminal_failure_reason: Optional[str] = None,
         retry_count: Optional[int] = None
     ) -> RunMetadata:
         """Update run status.
-        
+
         Args:
             run_id: The run identifier
             status: New status (pending, running, success, failed)
             end_time: Optional end time
-            failure_reason: Optional failure reason
+            terminal_failure_reason: Optional failure reason
             retry_count: Optional retry count override
         
         Returns:
@@ -164,7 +164,7 @@ class RunStore:
             UPDATE runs 
             SET status = ?, end_time = ?, terminal_failure_reason = ?, retry_count = ?
             WHERE run_id = ?
-        """, (status, end_iso, failure_reason, retry_count, run_id.value))
+        """, (status, end_iso, terminal_failure_reason, retry_count, run_id.value))
         
         conn.commit()
         
