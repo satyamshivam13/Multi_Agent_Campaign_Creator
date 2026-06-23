@@ -164,7 +164,7 @@ flow from execution the way production agentic systems do:
 - **CrewAI** owns the *execution* — each graph node runs one CrewAI `Agent`
   inside a single-task `Crew`.
 
-```
+```text
 [Research] → [Copywriter] → [Art Director] → [Manager] → [END]
      │             │               │
    (error)      (error)         (error)  ──────────────→ [END]
