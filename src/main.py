@@ -28,6 +28,7 @@ from src.models.campaign_models import (
     CopyTone,
 )
 from src.workflow.crew_workflow import CampaignCrew
+from src.workflow.langgraph_workflow import run_campaign_with_langgraph
 
 console = Console()
 
@@ -230,6 +231,50 @@ def display_request_summary(request: CampaignRequest) -> None:
     )
 
 
+def run_campaign_langgraph(request: CampaignRequest) -> None:
+    """Execute the campaign via the LangGraph state machine.
+
+    Same four CrewAI agents, but LangGraph owns the routing between stages
+    and halts the pipeline if a stage records an error.
+    """
+    display_request_summary(request)
+
+    console.print(
+        Panel(
+            "[bold]Running campaign via LangGraph state machine...[/bold]\n"
+            "research → copywriter → art_director → manager\n"
+            "LangGraph routes between stages; CrewAI executes each agent.",
+            title="⏳ LangGraph Execution Started",
+            border_style="yellow",
+        )
+    )
+    console.print()
+
+    final_state = run_campaign_with_langgraph(request)
+
+    if final_state.get("errors"):
+        console.print(
+            Panel(
+                "[bold red]Pipeline halted:[/bold red]\n\n"
+                + "\n".join(final_state["errors"]),
+                title="❌ Error",
+                border_style="red",
+            )
+        )
+        sys.exit(1)
+
+    console.print(
+        Panel(
+            f"[bold green]Campaign for '{request.product_name}' "
+            f"completed via LangGraph![/bold green]\n\n"
+            f"[bold]Final brief (preview):[/bold]\n"
+            f"{final_state['final_brief'][:800]}...",
+            title="✅ Campaign Complete",
+            border_style="green",
+        )
+    )
+
+
 def run_campaign(request: CampaignRequest) -> None:
     """Execute the full multi-agent campaign workflow."""
 
@@ -305,6 +350,7 @@ def main() -> None:
         epilog=(
             "Examples:\n"
             "  python -m src.main --demo         Run with sample product\n"
+            "  python -m src.main --demo --langgraph  Run via LangGraph\n"
             "  python -m src.main              Interactive mode\n"
             "  python -m src.main --rerun <id> Rerun a previous campaign\n"
             "  python -m src.main --debug    Enable debug mode\n"
@@ -319,6 +365,11 @@ def main() -> None:
         "--rerun",
         type=str,
         help="Rerun a previous campaign by run_id",
+    )
+    parser.add_argument(
+        "--langgraph",
+        action="store_true",
+        help="Orchestrate the agents with the LangGraph state machine",
     )
     parser.add_argument(
         "--debug",
@@ -345,10 +396,16 @@ def main() -> None:
         elif args.demo:
             console.print("\n[cyan]Running demo campaign for AeroFlow Pro...[/cyan]\n")
             request = DEMO_REQUEST
-            run_campaign(request)
+            if args.langgraph:
+                run_campaign_langgraph(request)
+            else:
+                run_campaign(request)
         else:
             request = gather_request_interactive()
-            run_campaign(request)
+            if args.langgraph:
+                run_campaign_langgraph(request)
+            else:
+                run_campaign(request)
 
     except KeyboardInterrupt:
         console.print("\n[yellow]Cancelled by user.[/yellow]")
