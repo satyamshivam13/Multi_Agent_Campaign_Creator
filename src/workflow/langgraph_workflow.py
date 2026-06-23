@@ -71,6 +71,15 @@ def _channels(request: CampaignRequest) -> str:
     return ", ".join(c.value for c in request.channels)
 
 
+def _safe_stage_error(stage: str, exc: Exception) -> str:
+    """User-facing stage error that avoids leaking provider/internal detail.
+
+    The exception type is kept for triage; the raw message (which may contain
+    backend or credential hints) is not surfaced into shared state.
+    """
+    return f"{stage}: stage failed ({exc.__class__.__name__})"
+
+
 # ── Node functions (each calls one CrewAI agent) ─────────────────────────────
 def run_research(state: CampaignState) -> CampaignState:
     request = state["request"]
@@ -90,7 +99,7 @@ def run_research(state: CampaignState) -> CampaignState:
             "Markdown report with trends, competitors, personas, angles",
         )
     except Exception as exc:  # noqa: BLE001 - surface failure into state
-        return {**state, "errors": [*state["errors"], f"research: {exc}"]}
+        return {**state, "errors": [*state["errors"], _safe_stage_error("research", exc)]}
     return {**state, "research_output": result, "current_stage": "research_complete"}
 
 
@@ -115,7 +124,7 @@ def run_copywriter(state: CampaignState) -> CampaignState:
             "Copy package with taglines, channel copy, hashtags",
         )
     except Exception as exc:  # noqa: BLE001
-        return {**state, "errors": [*state["errors"], f"copywriter: {exc}"]}
+        return {**state, "errors": [*state["errors"], _safe_stage_error("copywriter", exc)]}
     return {**state, "copy_output": result, "current_stage": "copy_complete"}
 
 
@@ -139,7 +148,7 @@ def run_art_director(state: CampaignState) -> CampaignState:
             "Visual direction and prompts",
         )
     except Exception as exc:  # noqa: BLE001
-        return {**state, "errors": [*state["errors"], f"art_director: {exc}"]}
+        return {**state, "errors": [*state["errors"], _safe_stage_error("art_director", exc)]}
     return {**state, "visual_output": result, "current_stage": "visual_complete"}
 
 
@@ -163,7 +172,7 @@ def run_manager(state: CampaignState) -> CampaignState:
             "Final campaign brief in markdown",
         )
     except Exception as exc:  # noqa: BLE001
-        return {**state, "errors": [*state["errors"], f"manager: {exc}"]}
+        return {**state, "errors": [*state["errors"], _safe_stage_error("manager", exc)]}
     return {**state, "final_brief": result, "current_stage": "complete"}
 
 
