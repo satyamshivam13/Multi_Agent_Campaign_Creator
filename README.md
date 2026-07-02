@@ -1,5 +1,10 @@
 # Multi-Agent Campaign Creator
 
+[![Tests](https://github.com/satyamshivam13/Multi_Agent_Campaign_Creator/actions/workflows/tests.yml/badge.svg)](https://github.com/satyamshivam13/Multi_Agent_Campaign_Creator/actions/workflows/tests.yml)
+[![Coverage](https://img.shields.io/badge/coverage-74%25-yellowgreen)](tests/)
+[![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 **AI-powered marketing campaign generation using CrewAI and Groq**
 
 Create complete, research-backed marketing campaigns in minutes. Four specialized AI agents work together sequentially to produce market research, compelling copy, visual direction, and an executive brief—all from a single product description.
@@ -75,6 +80,8 @@ python -m src.main
 ```
 
 Outputs saved to: `src/output/{product_name}_{timestamp}.{md,json}`
+
+**Want to see the result before running it?** A complete campaign brief from a real run (AeroFlow Pro smart air purifier) is committed at [`examples/sample_campaign.md`](examples/sample_campaign.md) with the structured JSON at [`examples/sample_campaign.json`](examples/sample_campaign.json).
 
 ---
 
